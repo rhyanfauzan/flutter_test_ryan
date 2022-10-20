@@ -7,6 +7,7 @@ import 'package:flutter_application_crud_mockapi/data/repository.dart';
 import 'package:flutter_application_crud_mockapi/model/barang.dart';
 import 'package:flutter_application_crud_mockapi/pages/create_data_page.dart';
 import 'package:flutter_application_crud_mockapi/pages/update_data_page.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(MyApp());
@@ -54,30 +55,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Barang> listBarang = [];
   Repository repository = Repository();
-  late Future<Barang?> futureBarang;
+  late Future<BarangModel?> futureBarang;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  getData() async {
-    listBarang = await repository.getData();
-    print('load from API');
-    setState(() {});
-  }
 
   @override
   void initState() {
-    getData();
     super.initState();
     futureBarang = BarangService().getBarang();
   }
 
   Future<void> _refreshBarang() async {
-    final newlistBarang = await repository.getData();
-    futureBarang = BarangService().getBarang();
-
     setState(() {
-      listBarang = newlistBarang;
+      futureBarang = BarangService().getBarang();
     });
   }
 
@@ -89,7 +79,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('List Barang'),
       ),
-      body: FutureBuilder<Barang?>(
+      body: FutureBuilder<BarangModel?>(
           future: futureBarang,
           builder: (context, snapshot) {
             final futureBarang = snapshot.data;
@@ -99,27 +89,23 @@ class _HomePageState extends State<HomePage> {
               return RefreshIndicator(
                 onRefresh: _refreshBarang,
                 child: ListView.builder(
-                    itemCount: listBarang.length,
+                    itemCount: futureBarang!.listbarang.length,
                     itemBuilder: (context, index) {
-                      Barang barang = listBarang[index];
+                      Listbarang? barang = futureBarang.listbarang[index];
+                      // Format date
+                      final datetime = barang.tanggal_barang;
+                      final date = DateFormat('d MMM yyyy').format(datetime!);
+
                       return InkWell(
                         onLongPress: () {
-                          // Navigator.pushNamed(
-                          //     context, UpdateData().toString(), arguments: [
-                          //   barang.id,
-                          //   barang.name,
-                          //   barang.stok,
-                          //   barang.terjual,
-                          //   barang.jenis
-                          // ]);
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => UpdateData(
                                   barang_id: barang.id,
-                                  barang_name: barang.name,
-                                  barang_stok: barang.stok,
-                                  barang_terjual: barang.terjual,
-                                  barang_jenis: barang.jenis),
+                                  barang_name: barang.nama_barang,
+                                  barang_stok: barang.stok_barang,
+                                  barang_terjual: barang.terjual_barang,
+                                  barang_jenis: barang.jenis_barang),
                             ),
                           );
                         },
@@ -160,19 +146,6 @@ class _HomePageState extends State<HomePage> {
                                   );
                                 });
                           },
-                          // child: ListTile(
-                          //   leading: Container(
-                          //     width: 60,
-                          //     height: 60,
-                          //     decoration: BoxDecoration(
-                          //         shape: BoxShape.circle,
-                          //         image: DecorationImage(
-                          //             image: AssetImage('assets/person1.png'),
-                          //             fit: BoxFit.cover)),
-                          //   ),
-                          //   title: Text('${barang.name} ${barang.stok}'),
-                          //   subtitle: Text('Terjual: ${barang.terjual}'),
-                          // ),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 20, vertical: 4),
@@ -201,7 +174,7 @@ class _HomePageState extends State<HomePage> {
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    '${barang.name}',
+                                                    '${barang.nama_barang}',
                                                     style: TextStyle(
                                                         fontSize: 16,
                                                         fontWeight:
@@ -210,12 +183,22 @@ class _HomePageState extends State<HomePage> {
                                                   SizedBox(
                                                     height: 8,
                                                   ),
-                                                  Text('Stok : ${barang.stok}',
+                                                  Text(
+                                                      'Stok : ${barang.stok_barang}',
                                                       style: TextStyle(
                                                           color: Colors.grey,
                                                           fontSize: 12,
                                                           fontWeight:
-                                                              FontWeight.w400))
+                                                              FontWeight.w400)),
+                                                  Text(
+                                                    'Terjual : ${barang.terjual_barang}',
+                                                    style: TextStyle(
+                                                        color: Colors
+                                                            .green.shade800,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w400),
+                                                  ),
                                                 ],
                                               )
                                             ],
@@ -226,18 +209,18 @@ class _HomePageState extends State<HomePage> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.end,
                                         children: [
-                                          Text('${barang.jenis}',
+                                          Text('${barang.jenis_barang}',
                                               style: TextStyle(
-                                                  color: Colors.grey,
+                                                  color: Colors.blue.shade800,
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.w700)),
                                           SizedBox(
                                             height: 8,
                                           ),
                                           Text(
-                                            'Terjual : ${barang.terjual}',
+                                            'Tanggal : ${date}',
                                             style: TextStyle(
-                                                color: Colors.green.shade800,
+                                                color: Colors.grey,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w400),
                                           ),

@@ -1,6 +1,11 @@
+import 'package:d_info/d_info.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_crud_mockapi/data/repository.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_application_crud_mockapi/main.dart';
+
+import '../data/barangservice.dart';
+import '../model/create_barang_model.dart';
+import '../model/update_barang_model.dart';
 
 class UpdateData extends StatefulWidget {
   UpdateData(
@@ -25,34 +30,45 @@ class UpdateData extends StatefulWidget {
 class _UpdateDataState extends State<UpdateData> {
   _UpdateDataState(this.barang_id, this.barang_name, this.barang_stok,
       this.barang_terjual, this.barang_jenis);
+  BarangService _createBarang = BarangService();
 
-  final nameController = TextEditingController();
-  final stokController = TextEditingController();
-  final terjualController = TextEditingController();
-  final jenisController = TextEditingController();
-  Repository repository = Repository();
   String barang_id;
   String barang_name;
   String barang_stok;
   String barang_terjual;
   String barang_jenis;
 
+  final nameController = TextEditingController();
+  final stokController = TextEditingController();
+  final terjualController = TextEditingController();
+  final jenisController = TextEditingController();
+
+  updateDataBarang() async {
+    updateBarangModel? user = await _createBarang.updateDataBarang(
+      barang_id,
+      barang_name,
+      barang_stok,
+      barang_terjual,
+      barang_jenis,
+    );
+    print('user: ${user}');
+    if (user != null) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => MyApp(),
+            ),
+          );
+      });
+    } else {
+      DInfo.dialogError(context, 'Gagal mengubah data barang!');
+      DInfo.closeDialog(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // final args = ModalRoute.of(context)?.settings.arguments as List<String>;
-    if (barang_name.isNotEmpty) {
-      nameController.text = barang_name;
-    }
-    if (barang_stok.isNotEmpty) {
-      stokController.text = barang_stok;
-    }
-    if (barang_terjual.isNotEmpty) {
-      terjualController.text = barang_terjual;
-    }
-    if (barang_jenis.isNotEmpty) {
-      jenisController.text = barang_jenis;
-    }
-
+    
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -66,28 +82,36 @@ class _UpdateDataState extends State<UpdateData> {
                 SizedBox(
                   height: 50,
                 ),
-                TextField(
+                TextFormField(
                   decoration: InputDecoration(hintText: 'Nama'),
                   controller: nameController,
                 ),
                 SizedBox(
                   height: 20,
                 ),
-                TextField(
+                TextFormField(
                   decoration: InputDecoration(hintText: 'Stok'),
                   controller: stokController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
                 ),
                 SizedBox(
                   height: 20,
                 ),
-                TextField(
+                TextFormField(
                   decoration: InputDecoration(hintText: 'Terjual'),
                   controller: terjualController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
                 ),
                 SizedBox(
                   height: 20,
                 ),
-                TextField(
+                TextFormField(
                   decoration: InputDecoration(hintText: 'Jenis'),
                   controller: jenisController,
                 ),
@@ -111,25 +135,12 @@ class _UpdateDataState extends State<UpdateData> {
                       width: 20,
                     ),
                     ElevatedButton(
-                        onPressed: () async {
-                          bool response = await repository.updateData(
-                              barang_id,
-                              nameController.text,
-                              stokController.text,
-                              terjualController.text,
-                              jenisController.text);
-
-                          if (response) {
-                            // Navigator.popAndPushNamed(context, 'home');
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (context) => MyApp(),
-                              ),
-                            );
-                            print('berhasil update');
-                          } else {
-                            throw Exception('Gagal update data');
-                          }
+                        onPressed: () {
+                          barang_name = nameController.text;
+                          barang_stok = stokController.text;
+                          barang_terjual = terjualController.text;
+                          barang_jenis = jenisController.text;
+                          updateDataBarang();
                         },
                         child: Text('Submit'))
                   ],

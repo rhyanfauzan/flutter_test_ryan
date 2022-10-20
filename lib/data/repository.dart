@@ -6,18 +6,21 @@ import '../model/person.dart';
 
 class Repository {
   // String _baseUrl = 'http://6308255046372013f576f9b5.mockapi.io/person';
-  String _baseUrl = 'https://634e8f984af5fdff3a6052b8.mockapi.io/api/barang';
+  String _baseUrl = 'https://flutter.apitest.zethansa.com/api';
 
   Future getData() async {
     try {
       final response = await http.get(Uri.parse(_baseUrl));
 
       if (response.statusCode == 200) {
+        final body = json.decode(response.body);
+
         print('berhasil get');
         print(response.body);
         Iterable it = jsonDecode(response.body);
-        List<Barang> barangs = it.map((e) => Barang.fromJson(e)).toList();
-        return barangs;
+        // List<Listbarang> barangs =
+        //     it.map((e) => Listbarang.fromJson(e)).toList();
+        return body;
       }
     } catch (e) {
       print('gagal get');
@@ -26,48 +29,69 @@ class Repository {
     }
   }
 
-  Future createData(
-    final String name,
-    final String stok,
-    final String terjual,
-    final String jenis,
+  Future<Listbarangdaftar?> createData(
+    String nama_barang,
+    String stok_barang,
+    String terjual_barang,
+    String jenis_barang,
   ) async {
     try {
-      final response = await http.post(Uri.parse(_baseUrl), body: {
-        'name': name,
-        'stok': stok,
-        'terjual': terjual,
-        'jenis': jenis,
-      });
+      final api = Uri.parse('${_baseUrl}/create.php');
+      final data = {
+        'nama_barang': nama_barang,
+        'stok_barang': stok_barang,
+        'terjual_barang': terjual_barang,
+        'jenis_barang': jenis_barang,
+      };
 
-      if (response.statusCode == 201) {
-        return true;
+      http.Response response;
+      response = await http.post(api, body: data);
+
+      if (response.statusCode == 200) {
+        print('berhasil menambahkan data');
+        // return true;
+        return Listbarangdaftar(
+          nama_barang: nama_barang,
+          jenis_barang: jenis_barang,
+          stok_barang: stok_barang,
+          terjual_barang: terjual_barang,
+        );
       } else {
-        return false;
+        print('gagal menambahkan data');
+        return null;
       }
     } catch (e) {
       print(e.toString());
     }
   }
 
-  Future updateData(
+  Future<Listbarangdaftar?> updateData(
     String id,
-    final String name,
-    final String stok,
-    final String terjual,
-    final String jenis,
+    String nama_barang,
+    String stok_barang,
+    String terjual_barang,
+    String jenis_barang,
   ) async {
     try {
-      final response = await http.put(Uri.parse('${_baseUrl}/${id}'), body: {
-        'name': name,
-        'stok': stok,
-        'terjual': terjual,
-        'jenis': jenis,
+      final response = await http
+          .put(Uri.parse('${_baseUrl}/update-product.php?id=${id}'), body: {
+        'id': id,
+        'nama_barang': nama_barang,
+        'stok_barang': stok_barang,
+        'terjual_barang': terjual_barang,
+        'jenis_barang': jenis_barang,
       });
       if (response.statusCode == 200) {
-        return true;
+        print('berhasil merubah data');
+        return Listbarangdaftar(
+          nama_barang: nama_barang,
+          jenis_barang: jenis_barang,
+          stok_barang: stok_barang,
+          terjual_barang: terjual_barang,
+        );
       } else {
-        return false;
+        print('gagal merubah data');
+        return null;
       }
     } catch (e) {
       print(e.toString());
@@ -76,10 +100,13 @@ class Repository {
 
   Future deleteData(String id) async {
     try {
-      final response = await http.delete(Uri.parse('${_baseUrl}/${id}'));
+      final response = await http
+          .delete(Uri.parse('${_baseUrl}/delete-product.php?id=${id}'));
       if (response.statusCode == 200) {
+        print('berhasil delete!');
         return true;
       } else {
+        print('gagal delete!');
         return false;
       }
     } catch (e) {
